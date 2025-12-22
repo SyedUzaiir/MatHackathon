@@ -14,14 +14,14 @@ classdef dashboard_concept < matlab.apps.AppBase
         CenterPanel          matlab.ui.container.Panel
         
         % Inputs
-        AgeEditField         matlab.ui.control.NumericEditField
-        GlucoseEditField     matlab.ui.control.NumericEditField
-        BMIEditField         matlab.ui.control.NumericEditField
-        SBPEditField         matlab.ui.control.NumericEditField
+        AgeEditField         
+        GlucoseEditField     
+        BMIEditField         
+        SBPEditField         
         CalculateButton      matlab.ui.control.Button
         
         % Outputs
-        RiskGauge            matlab.ui.control.Gauge % Or LinearGauge if Gauge unavailable
+        RiskGauge            % Or LinearGauge if Gauge unavailable
         RiskLabel            matlab.ui.control.Label
         TrajectoryAxes       matlab.ui.control.UIAxes
         
@@ -119,19 +119,19 @@ classdef dashboard_concept < matlab.apps.AppBase
             inpLayout.RowHeight = {'fit','fit','fit','fit','fit'};
             
             lbl1 = uilabel(inpLayout); lbl1.Text = 'Age';
-            app.AgeEditField = uinumericeditfield(inpLayout);
+            app.AgeEditField = uieditfield(inpLayout, 'numeric');
             app.AgeEditField.Value = 65;
             
             lbl2 = uilabel(inpLayout); lbl2.Text = 'Glucose (Mean)';
-            app.GlucoseEditField = uinumericeditfield(inpLayout);
+            app.GlucoseEditField = uieditfield(inpLayout, 'numeric');
             app.GlucoseEditField.Value = 140;
             
             lbl3 = uilabel(inpLayout); lbl3.Text = 'BMI';
-            app.BMIEditField = uinumericeditfield(inpLayout);
+            app.BMIEditField = uieditfield(inpLayout, 'numeric');
             app.BMIEditField.Value = 28;
             
             lbl4 = uilabel(inpLayout); lbl4.Text = 'SBP';
-            app.SBPEditField = uinumericeditfield(inpLayout);
+            app.SBPEditField = uieditfield(inpLayout, 'numeric');
             app.SBPEditField.Value = 130;
             
             app.CalculateButton = uibutton(inpLayout, 'push');

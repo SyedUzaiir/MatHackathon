@@ -47,7 +47,7 @@ if ~isempty(pd_features)
     
     for i = 1:length(pd_features)
         nexttile;
-        plotPartialDependence(model_ensemble, pd_features{i}, 'Diabetes');
+        plotPartialDependence(model_ensemble, pd_features{i}, 1);
         title(['Dependence on ' pd_features{i}]);
         grid on;
     end

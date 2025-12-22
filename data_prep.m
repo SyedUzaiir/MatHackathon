@@ -6,7 +6,7 @@
 clear; clc; close all;
 
 %% 1. Load Data
-filename = 'diabetes_15_important_columns.csv';
+filename = fullfile('datasets', 'diabetes_15_important_columns.csv');
 if ~isfile(filename)
     error('Dataset file "%s" not found.', filename);
 end
@@ -95,7 +95,7 @@ if ismember('BMI', data.Properties.VariableNames)
     % Initialize categorical array
     % We use discretization logic
     bmi_vals = data.BMI;
-    categories = Strings(size(bmi_vals)); % Setup string array
+    categories = strings(size(bmi_vals)); % Setup string array
     
     categories(bmi_vals < 18.5) = "Underweight";
     categories(bmi_vals >= 18.5 & bmi_vals < 25) = "Normal";
