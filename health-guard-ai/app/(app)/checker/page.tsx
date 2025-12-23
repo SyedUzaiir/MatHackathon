@@ -62,16 +62,13 @@ export default function CheckerPage() {
         setResult(null);
         setTimeout(() => {
             // Mock ML Logic
-            const score = Math.max(0.1, 1 - (
-                (form.bmi > 30 ? 0.3 : 0) +
-                (form.hba1c > 6.5 ? 0.2 : 0) +
-                (form.glucose_random > 140 ? 0.2 : 0) +
-                (form.sbp_mean > 140 ? 0.1 : 0)
-            ));
+            // Mock ML Logic - Randomized as requested
+            // Generates a random integer between 1 and 99
+            const score = Math.floor(Math.random() * 99) + 1;
 
             let prediction = "Healthy / Low Risk";
-            if (score < 0.4) prediction = "High Risk of Type 2 Diabetes";
-            else if (score < 0.7) prediction = "Pre-Diabetic Warning";
+            if (score < 40) prediction = "High Risk of Type 2 Diabetes";
+            else if (score < 70) prediction = "Pre-Diabetic Warning";
 
             const chartData = [
                 { name: 'Your BMI', value: form.bmi, standard: 22 },
@@ -167,7 +164,7 @@ export default function CheckerPage() {
                                 <h3 className="font-bold text-xl text-slate-900 mb-4">Analysis Result</h3>
 
                                 <div className="mb-6 flex flex-col items-center">
-                                    <RiskGauge score={result.score} />
+                                    <RiskGauge score={result.score / 100} />
                                     <p className="mt-4 text-lg font-bold text-slate-800">{result.prediction}</p>
                                 </div>
 

@@ -8,7 +8,7 @@ export interface Patient {
     glucose_random: number;
     hypoglycemia: boolean;
     hyperglycemia: boolean;
-    diabetes: 'Type 1' | 'Type 2' | 'None';
+    diabetesStatus: 'Normal' | 'Pre-diabetic' | 'High Risk';
     insulin_avg: number;
     sbp_mean: number;
     dbp_mean: number;
@@ -72,14 +72,16 @@ export const generateUsers = (count: number = 25): Patient[] => {
         // Higher BMI increases risk of Type 2
         const riskFactor = (bmi - 25) / 10; // normalized rough risk
         const isHighRisk = bmi > 30 || rng.bool(0.3 + (riskFactor * 0.2));
-        
+
         const glucoseBase = isHighRisk ? 120 : 85;
         const glucoseRandom = rng.int(glucoseBase - 20, glucoseBase + 100);
         const hba1c = rng.float(4.5, isHighRisk ? 10.0 : 6.2, 1);
-        
-        let diabetes: 'Type 1' | 'Type 2' | 'None' = 'None';
-        if (hba1c > 6.5 || glucoseRandom > 200) {
-            diabetes = rng.bool(0.1) ? 'Type 1' : 'Type 2'; // Mostly Type 2 in this demographic
+
+        let diabetesStatus: 'Normal' | 'Pre-diabetic' | 'High Risk' = 'Normal';
+        if (hba1c >= 6.5 || glucoseRandom > 200) {
+            diabetesStatus = 'High Risk';
+        } else if (hba1c >= 5.7 || glucoseRandom > 140) {
+            diabetesStatus = 'Pre-diabetic';
         }
 
         users.push({
@@ -92,7 +94,7 @@ export const generateUsers = (count: number = 25): Patient[] => {
             glucose_random: glucoseRandom,
             hypoglycemia: glucoseRandom < 70,
             hyperglycemia: glucoseRandom > 180,
-            diabetes,
+            diabetesStatus,
             insulin_avg: rng.float(5, 25, 1),
             sbp_mean: rng.int(110, 165),
             dbp_mean: rng.int(70, 98),

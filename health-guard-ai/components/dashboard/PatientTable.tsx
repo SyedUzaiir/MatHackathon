@@ -112,6 +112,7 @@ export function PatientTable() {
                         <tr>
                             <th className="px-6 py-3 font-medium">Patient ID</th>
                             <th className="px-6 py-3 font-medium">Name</th>
+                            <th className="px-6 py-3 font-medium">Diabetes Status</th>
                             <th className="px-6 py-3 font-medium">Age</th>
                             <th className="px-6 py-3 font-medium">Sex</th>
                             <th className="px-6 py-3 font-medium">Risk Status</th>
@@ -131,6 +132,14 @@ export function PatientTable() {
                                     >
                                         <td className="px-6 py-4 font-medium text-slate-900">{patient.id}</td>
                                         <td className="px-6 py-4 text-slate-600">{patient.name}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${patient.diabetesStatus === 'Normal' ? 'bg-emerald-50 text-emerald-700' :
+                                                patient.diabetesStatus === 'Pre-diabetic' ? 'bg-yellow-50 text-yellow-700' :
+                                                    'bg-red-50 text-red-700'
+                                                }`}>
+                                                {patient.diabetesStatus}
+                                            </span>
+                                        </td>
                                         <td className="px-6 py-4 text-slate-600">{patient.age}</td>
                                         <td className="px-6 py-4 text-slate-600">{patient.sex}</td>
                                         <td className="px-6 py-4">
@@ -151,7 +160,7 @@ export function PatientTable() {
                             })
                         ) : (
                             <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                                <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                                     No patients found matching your criteria.
                                 </td>
                             </tr>

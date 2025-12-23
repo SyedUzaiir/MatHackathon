@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 const METRIC_CONFIG: Record<string, { label: string; max?: number; unit?: string; highBad?: boolean; type?: 'text' }> = {
     sbp_mean: { label: 'Systolic BP', max: 200, unit: 'mmHg', highBad: true },
     dbp_mean: { label: 'Diastolic BP', max: 120, unit: 'mmHg', highBad: true },
-    diabetes: { label: 'Diabetes Status', type: 'text' },
+    diabetesStatus: { label: 'Diabetes Status', type: 'text' },
     glucose_random: { label: 'Random Glucose', max: 250, unit: 'mg/dL', highBad: true },
     hba1c: { label: 'HbA1c', max: 14, unit: '%', highBad: true },
     bmi: { label: 'BMI', max: 40, unit: 'kg/m²', highBad: true },
