@@ -8,6 +8,7 @@ export interface Patient {
     glucose_random: number;
     hypoglycemia: boolean;
     hyperglycemia: boolean;
+    diabetes: 'Type 1' | 'Type 2' | 'None';
     insulin_avg: number;
     sbp_mean: number;
     dbp_mean: number;
@@ -27,49 +28,78 @@ const LAST_NAMES = [
     'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'
 ];
 
-function getRandomInt(min: number, max: number) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+// Seeded Random Number Generator
+class SeededRandom {
+    private seed: number;
+    constructor(seed: number) {
+        this.seed = seed;
+    }
+
+    // Linear Congruential Generator
+    private next(): number {
+        this.seed = (this.seed * 9301 + 49297) % 233280;
+        return this.seed / 233280;
+    }
+
+    public int(min: number, max: number): number {
+        return Math.floor(this.next() * (max - min + 1)) + min;
+    }
+
+    public float(min: number, max: number, decimals: number = 1): number {
+        const val = this.next() * (max - min) + min;
+        return parseFloat(val.toFixed(decimals));
+    }
+
+    public element<T>(arr: T[]): T {
+        return arr[Math.floor(this.next() * arr.length)];
+    }
+
+    public bool(chance: number = 0.5): boolean {
+        return this.next() < chance;
+    }
 }
 
-function getRandomFloat(min: number, max: number, decimals: number = 1) {
-    const str = (Math.random() * (max - min) + min).toFixed(decimals);
-    return parseFloat(str);
-}
-
-function getRandomElement<T>(arr: T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
-}
+const rng = new SeededRandom(12345); // Fixed seed for stability
 
 export const generateUsers = (count: number = 25): Patient[] => {
     const users: Patient[] = [];
     for (let i = 1; i <= count; i++) {
-        const isMale = Math.random() > 0.5;
+        const isMale = rng.bool(0.5);
         const sex = isMale ? 'Male' : 'Female';
-        const bmi = getRandomFloat(18.5, 35, 1);
+        const bmi = rng.float(18.5, 38, 1);
 
         // Correlate some data for realism
-        const isHighRisk = bmi > 30 || Math.random() > 0.8;
-        const glucoseBase = isHighRisk ? 110 : 80;
-        const glucoseRandom = getRandomInt(glucoseBase, glucoseBase + 80);
-        const hba1c = getRandomFloat(4.5, isHighRisk ? 9.0 : 6.5, 1);
+        // Higher BMI increases risk of Type 2
+        const riskFactor = (bmi - 25) / 10; // normalized rough risk
+        const isHighRisk = bmi > 30 || rng.bool(0.3 + (riskFactor * 0.2));
+        
+        const glucoseBase = isHighRisk ? 120 : 85;
+        const glucoseRandom = rng.int(glucoseBase - 20, glucoseBase + 100);
+        const hba1c = rng.float(4.5, isHighRisk ? 10.0 : 6.2, 1);
+        
+        let diabetes: 'Type 1' | 'Type 2' | 'None' = 'None';
+        if (hba1c > 6.5 || glucoseRandom > 200) {
+            diabetes = rng.bool(0.1) ? 'Type 1' : 'Type 2'; // Mostly Type 2 in this demographic
+        }
 
         users.push({
             id: `PID-${1000 + i}`,
-            name: `${getRandomElement(FIRST_NAMES)} ${getRandomElement(LAST_NAMES)}`,
-            age: getRandomInt(25, 85),
+            name: `${rng.element(FIRST_NAMES)} ${rng.element(LAST_NAMES)}`,
+            age: rng.int(25, 85),
             sex,
             bmi,
             hba1c,
             glucose_random: glucoseRandom,
             hypoglycemia: glucoseRandom < 70,
             hyperglycemia: glucoseRandom > 180,
-            insulin_avg: getRandomFloat(5, 25, 1),
-            sbp_mean: getRandomInt(110, 160),
-            dbp_mean: getRandomInt(70, 95),
-            history_htn: isHighRisk && Math.random() > 0.4,
-            hr_mean: getRandomInt(60, 100),
-            spo2_mean: getRandomInt(94, 100),
-            temp_mean: getRandomFloat(36.1, 37.2, 1),
+            diabetes,
+            insulin_avg: rng.float(5, 25, 1),
+            sbp_mean: rng.int(110, 165),
+            dbp_mean: rng.int(70, 98),
+            history_htn: isHighRisk && rng.bool(0.6),
+            hr_mean: rng.int(60, 100),
+            spo2_mean: rng.int(94, 100),
+            temp_mean: rng.float(36.1, 37.2, 1),
         });
     }
     return users;

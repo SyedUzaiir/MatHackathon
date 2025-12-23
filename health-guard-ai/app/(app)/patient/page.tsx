@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, User } from 'lucide-react';
 import { MOCK_PATIENTS, type Patient } from '@/lib/mockData';
 import { PatientVitals } from '@/components/patient/PatientVitals';
@@ -12,14 +12,33 @@ export default function PatientAnalysisPage() {
     const [query, setQuery] = useState('');
     const [patient, setPatient] = useState<Patient | null>(null);
 
-    // Calculate Health Score (0-1)
-    const healthScore = patient ? Math.max(0.1, 1 - (
-        (patient.bmi > 30 ? 0.2 : 0) +
-        (patient.hypoglycemia ? 0.3 : 0) +
-        (patient.hyperglycemia ? 0.3 : 0) +
-        (patient.sbp_mean > 140 ? 0.2 : 0) +
-        (patient.history_htn ? 0.1 : 0)
-    )) : 0;
+    // Calculate Dynamic Health Score (0-100 normalized to 0-1)
+    const healthScore = useMemo(() => {
+        if (!patient) return 0;
+
+        let score = 100;
+
+        // BMI Deviation (Ideal 18.5-25) - Loose penalty
+        if (patient.bmi > 25) score -= (patient.bmi - 25) * 1.5;
+        if (patient.bmi < 18.5) score -= (18.5 - patient.bmi) * 1.5;
+
+        // BP Deviation (Ideal 120/80)
+        if (patient.sbp_mean > 120) score -= (patient.sbp_mean - 120) * 0.4;
+        if (patient.dbp_mean > 80) score -= (patient.dbp_mean - 80) * 0.4;
+
+        // Glucose (Ideal < 100 fasting, < 140 random) -> Taking 110 as safe base for random
+        if (patient.glucose_random > 110) score -= (patient.glucose_random - 110) * 0.15;
+        if (patient.glucose_random < 70) score -= (70 - patient.glucose_random) * 0.5;
+
+        // HbA1c (Ideal < 5.7)
+        if (patient.hba1c > 5.7) score -= (patient.hba1c - 5.7) * 4;
+
+        // Age factor (slight natural decline buffer, or just ignore to keep it "health vs age-adjusted")
+        // Let's keep it purely vital-based for "Current Health Status"
+
+        // Cap
+        return Math.max(0, Math.min(100, score)) / 100;
+    }, [patient]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

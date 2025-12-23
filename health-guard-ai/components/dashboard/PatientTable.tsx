@@ -1,52 +1,52 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Search, Filter, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MOCK_PATIENTS, type Patient } from '@/lib/mockData';
 import { PatientModal } from './PatientModal';
 import { motion } from 'framer-motion';
 
-const COLUMNS_FOR_FILTER = [
-    'age', 'bmi', 'hba1c', 'glucose_random', 'sbp_mean', 'dbp_mean', 'hr_mean'
-];
+
 
 export function PatientTable() {
     const [search, setSearch] = useState('');
-    const [filterCol, setFilterCol] = useState('bmi');
-    const [filterVal, setFilterVal] = useState('');
+    const [filterSex, setFilterSex] = useState('All');
+    const [filterStatus, setFilterStatus] = useState('All');
+    const [filterAgeMin, setFilterAgeMin] = useState('');
+    const [filterAgeMax, setFilterAgeMax] = useState('');
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
     const [page, setPage] = useState(1);
-    const itemsPerPage = 8; // Small page size for "Clean" look
+    const itemsPerPage = 8;
 
     const filteredPatients = useMemo(() => {
         return MOCK_PATIENTS.filter(p => {
             const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
                 p.id.toLowerCase().includes(search.toLowerCase());
 
-            let matchesFilter = true;
-            if (filterVal) {
-                const val = parseFloat(filterVal);
-                if (!isNaN(val)) {
-                    // Default to Greater Than for demo
-                    const patientVal = p[filterCol as keyof Patient];
-                    if (typeof patientVal === 'number') {
-                        matchesFilter = patientVal > val;
-                    }
-                }
-            }
+            const matchesSex = filterSex === 'All' || p.sex === filterSex;
 
-            return matchesSearch && matchesFilter;
+            const isCritical = p.hypoglycemia || p.hyperglycemia || p.bmi > 30;
+            const matchesStatus = filterStatus === 'All' ||
+                (filterStatus === 'Critical' && isCritical) ||
+                (filterStatus === 'Stable' && !isCritical);
+
+            const ageVal = p.age;
+            const min = filterAgeMin ? parseInt(filterAgeMin) : 0;
+            const max = filterAgeMax ? parseInt(filterAgeMax) : 120;
+            const matchesAge = ageVal >= min && ageVal <= max;
+
+            return matchesSearch && matchesSex && matchesStatus && matchesAge;
         });
-    }, [search, filterCol, filterVal]);
+    }, [search, filterSex, filterStatus, filterAgeMin, filterAgeMax]);
 
     const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
     const paginatedPatients = filteredPatients.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/50">
+            <div className="p-4 border-b border-slate-100 flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between bg-slate-50/50">
                 {/* Search */}
-                <div className="relative w-full md:w-64">
+                <div className="relative w-full xl:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
                         type="text"
@@ -57,27 +57,52 @@ export function PatientTable() {
                     />
                 </div>
 
-                {/* Filter */}
-                <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
-                    <Filter className="h-4 w-4 text-slate-400" />
-                    <span className="text-sm text-slate-500 whitespace-nowrap">Show where</span>
-                    <select
-                        value={filterCol}
-                        onChange={e => setFilterCol(e.target.value)}
-                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {COLUMNS_FOR_FILTER.map(col => (
-                            <option key={col} value={col}>{col.toUpperCase().replace('_', ' ')}</option>
-                        ))}
-                    </select>
-                    <span className="text-sm text-slate-500">is &gt;</span>
-                    <input
-                        type="number"
-                        placeholder="Value..."
-                        value={filterVal}
-                        onChange={e => setFilterVal(e.target.value)}
-                        className="w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-slate-500">Sex:</span>
+                        <select
+                            value={filterSex}
+                            onChange={e => setFilterSex(e.target.value)}
+                            className="rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="All">All</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-slate-500">Status:</span>
+                        <select
+                            value={filterStatus}
+                            onChange={e => setFilterStatus(e.target.value)}
+                            className="rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="All">All</option>
+                            <option value="Stable">Stable</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-slate-500">Age:</span>
+                        <input
+                            type="number"
+                            placeholder="Min"
+                            value={filterAgeMin}
+                            onChange={e => setFilterAgeMin(e.target.value)}
+                            className="w-16 rounded-lg border border-slate-200 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-slate-400">-</span>
+                        <input
+                            type="number"
+                            placeholder="Max"
+                            value={filterAgeMax}
+                            onChange={e => setFilterAgeMax(e.target.value)}
+                            className="w-16 rounded-lg border border-slate-200 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
                 </div>
             </div>
 
